@@ -1,0 +1,548 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font-sans,'Inter',sans-serif);}
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--bg4:#30363d;
+  --text:#e6edf3;--text2:#8b949e;--text3:#6e7681;
+  --blue:#4fc3f7;--blue2:#1565c0;--purple:#bb86fc;
+  --red:#ff6b6b;--green:#56d364;--orange:#ffa657;
+  --border:#30363d;--accent:#4fc3f7;
+}
+#app{background:var(--bg);color:var(--text);min-height:520px;max-width:420px;margin:0 auto;border-radius:16px;overflow:hidden;border:1px solid var(--border);display:flex;flex-direction:column;}
+#header{background:var(--bg2);padding:12px 16px 8px;border-bottom:1px solid var(--border);}
+#clock-row{display:flex;justify-content:space-between;align-items:flex-start;}
+#clock{font-size:28px;font-weight:700;color:var(--text);letter-spacing:-1px;}
+#date{font-size:12px;color:var(--text2);margin-top:2px;}
+#brand{text-align:right;}
+#brand-name{font-size:14px;font-weight:600;color:var(--blue);letter-spacing:.3px;}
+#brand-ver{font-size:11px;color:var(--text3);}
+#tabs{display:flex;background:var(--bg2);border-bottom:1px solid var(--border);}
+.tab{flex:1;padding:10px 4px 8px;text-align:center;cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);font-size:12px;font-weight:500;transition:all .15s;}
+.tab:hover{color:var(--text);}
+.tab.active{color:var(--blue);border-bottom-color:var(--blue);}
+.tab i{display:block;font-size:18px;margin-bottom:3px;}
+#content{flex:1;overflow:auto;}
+.panel{display:none;padding:12px;}
+.panel.active{display:block;}
+
+/* CALC */
+#display{background:var(--bg2);border-radius:10px;padding:12px 16px;margin-bottom:10px;min-height:64px;text-align:right;border:1px solid var(--border);}
+#expr{font-size:13px;color:var(--text2);min-height:18px;word-break:break-all;}
+#result-disp{font-size:32px;font-weight:300;color:var(--text);}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+.chip{background:var(--bg3);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--text2);transition:all .1s;}
+.chip:hover{background:var(--bg4);color:var(--text);}
+.mode-tabs{display:flex;gap:4px;margin-bottom:8px;}
+.mode-tab{flex:1;padding:5px;text-align:center;font-size:11px;cursor:pointer;border-radius:6px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);transition:all .15s;}
+.mode-tab.active{background:var(--blue2);color:var(--text);border-color:var(--blue);}
+.sci-row{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;margin-bottom:6px;}
+.sci-btn{padding:8px 4px;font-size:11px;background:var(--bg3);border:1px solid var(--border);border-radius:6px;cursor:pointer;color:var(--purple);text-align:center;transition:all .1s;}
+.sci-btn span{display:block;font-size:9px;color:var(--text3);}
+.sci-btn:hover{background:var(--bg4);}
+.num-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;}
+.btn{padding:14px 8px;font-size:16px;border-radius:8px;cursor:pointer;text-align:center;border:none;transition:all .1s;font-weight:500;}
+.btn:active{transform:scale(.94);}
+.btn-num{background:var(--bg3);color:var(--text);}
+.btn-num:hover{background:var(--bg4);}
+.btn-op{background:#1e3a4a;color:var(--blue);}
+.btn-op:hover{background:#254d63;}
+.btn-eq{background:var(--blue2);color:#fff;grid-column:span 2;}
+.btn-eq:hover{background:#1976d2;}
+.btn-ac{background:#3d1a1a;color:var(--red);}
+.btn-ac:hover{background:#4d2020;}
+.btn-fn{background:#1a1a3d;color:var(--purple);}
+.btn-fn:hover{background:#22224d;}
+.btn-sq{background:var(--bg3);color:var(--orange);}
+
+/* GRAPH */
+#graph-input-row{display:flex;gap:6px;margin-bottom:8px;}
+#fn-input{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:14px;font-family:var(--font-mono,monospace);}
+#fn-input:focus{outline:none;border-color:var(--blue);}
+#plot-btn{background:var(--blue2);color:#fff;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:14px;}
+#plot-btn:hover{background:#1976d2;}
+#canvas-wrap{background:var(--bg2);border-radius:10px;border:1px solid var(--border);overflow:hidden;margin-bottom:8px;}
+#gcanvas{display:block;width:100%;height:220px;}
+#eq-solver{background:var(--bg2);border-radius:10px;border:1px solid var(--border);padding:10px;}
+#eq-title{font-size:12px;color:var(--text2);margin-bottom:6px;}
+#eq-row{display:flex;gap:6px;}
+#eq-input{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:6px 10px;color:var(--text);font-size:13px;}
+#eq-input:focus{outline:none;border-color:var(--blue);}
+#eq-solve-btn{background:var(--bg3);color:var(--blue);border:1px solid var(--blue);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:13px;}
+#eq-result{margin-top:6px;font-size:14px;color:var(--green);}
+
+/* FINANCE */
+.fin-tabs{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap;}
+.fin-tab{flex:1;min-width:80px;padding:6px 4px;text-align:center;font-size:11px;cursor:pointer;border-radius:6px;background:var(--bg3);color:var(--text2);border:1px solid var(--border);transition:all .15s;}
+.fin-tab.active{background:var(--blue2);color:var(--text);border-color:var(--blue);}
+.fin-panel{display:none;}
+.fin-panel.active{display:block;}
+.fin-field{margin-bottom:8px;}
+.fin-label{font-size:11px;color:var(--text2);margin-bottom:3px;}
+.fin-input{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-size:14px;}
+.fin-input:focus{outline:none;border-color:var(--blue);}
+.fin-calc-btn{width:100%;background:var(--blue2);color:#fff;border:none;border-radius:8px;padding:10px;font-size:14px;cursor:pointer;margin-top:4px;}
+.fin-calc-btn:hover{background:#1976d2;}
+.fin-result{background:var(--bg2);border-radius:8px;border:1px solid var(--border);padding:10px;margin-top:8px;display:none;}
+.fin-result-row{display:flex;justify-content:space-between;padding:4px 0;font-size:13px;}
+.fin-result-row span:last-child{color:var(--green);font-weight:600;}
+
+/* NOTES */
+#notes-area{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-size:14px;font-family:var(--font-mono,monospace);resize:vertical;min-height:160px;line-height:1.6;}
+#notes-area:focus{outline:none;border-color:var(--blue);}
+.notes-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px;}
+.notes-btn{flex:1;min-width:70px;padding:7px 4px;font-size:12px;border-radius:6px;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text2);}
+.notes-btn:hover{background:var(--bg4);color:var(--text);}
+#notes-name{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:5px 8px;color:var(--text);font-size:12px;width:100%;margin-bottom:6px;}
+#notes-name:focus{outline:none;border-color:var(--blue);}
+#notes-eval-result{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:8px;margin-top:6px;font-size:12px;color:var(--green);display:none;font-family:var(--font-mono,monospace);}
+
+/* AI */
+#ai-messages{background:var(--bg2);border-radius:10px;border:1px solid var(--border);height:240px;overflow-y:auto;padding:10px;margin-bottom:8px;display:flex;flex-direction:column;gap:8px;}
+.ai-msg{padding:8px 10px;border-radius:8px;font-size:13px;line-height:1.5;max-width:90%;}
+.ai-msg.user{background:var(--blue2);color:#fff;align-self:flex-end;border-radius:8px 8px 2px 8px;}
+.ai-msg.assistant{background:var(--bg3);color:var(--text);align-self:flex-start;border-radius:8px 8px 8px 2px;}
+.ai-msg.typing{color:var(--text2);font-style:italic;}
+#ai-input-row{display:flex;gap:6px;}
+#ai-input{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;color:var(--text);font-size:13px;}
+#ai-input:focus{outline:none;border-color:var(--blue);}
+#ai-send{background:var(--blue2);color:#fff;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:18px;}
+#ai-send:hover{background:#1976d2;}
+.ai-suggestions{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;}
+.ai-sug{background:var(--bg3);border:1px solid var(--border);border-radius:16px;padding:4px 10px;font-size:11px;cursor:pointer;color:var(--text2);}
+.ai-sug:hover{color:var(--text);border-color:var(--blue);}
+</style>
+
+<div id="app">
+  <div id="header">
+    <div id="clock-row">
+      <div>
+        <div id="clock">00:00</div>
+        <div id="date">Loading...</div>
+      </div>
+      <div id="brand">
+        <div id="brand-name">AI Calculator Pro</div>
+        <div id="brand-ver">v2.0</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="tabs">
+    <div class="tab active" onclick="switchTab('calc')"><i class="ti ti-calculator" aria-hidden="true"></i>Calc</div>
+    <div class="tab" onclick="switchTab('graph')"><i class="ti ti-chart-line" aria-hidden="true"></i>Graph</div>
+    <div class="tab" onclick="switchTab('finance')"><i class="ti ti-currency-dollar" aria-hidden="true"></i>Finance</div>
+    <div class="tab" onclick="switchTab('notes')"><i class="ti ti-notes" aria-hidden="true"></i>Notes</div>
+    <div class="tab" onclick="switchTab('ai')"><i class="ti ti-robot" aria-hidden="true"></i>AI</div>
+  </div>
+
+  <div id="content">
+    <!-- CALC TAB -->
+    <div id="panel-calc" class="panel active">
+      <div id="display">
+        <div id="expr"></div>
+        <div id="result-disp">0</div>
+      </div>
+      <div class="chips">
+        <div class="chip" onclick="appendChip('%')">%</div>
+        <div class="chip" onclick="appendChip('**2')">x²</div>
+        <div class="chip" onclick="appendChip('sqrt(')">√x</div>
+        <div class="chip" onclick="appendChip('*Math.PI')">×π</div>
+        <div class="chip" onclick="appendChip('*1000')">×1K</div>
+      </div>
+      <div class="mode-tabs">
+        <div class="mode-tab active" id="mt-std" onclick="setMode('std')">Standard</div>
+        <div class="mode-tab" id="mt-sci" onclick="setMode('sci')">Scientific</div>
+        <div class="mode-tab" id="mt-trig" onclick="setMode('trig')">Trig</div>
+        <div class="mode-tab" id="mt-const" onclick="setMode('const')">Constants</div>
+        <div class="mode-tab" id="mt-hist" onclick="setMode('hist')">History</div>
+      </div>
+      <div id="sci-extra"></div>
+      <div class="num-grid" id="numgrid">
+        <button class="btn btn-fn" onclick="append('(')">(</button>
+        <button class="btn btn-fn" onclick="append(')')">)</button>
+        <button class="btn btn-fn" onclick="append('%')">%</button>
+        <button class="btn btn-ac" onclick="clearAll()">AC</button>
+        <button class="btn btn-num" onclick="append('7')">7</button>
+        <button class="btn btn-num" onclick="append('8')">8</button>
+        <button class="btn btn-num" onclick="append('9')">9</button>
+        <button class="btn btn-op" onclick="append('÷')">÷</button>
+        <button class="btn btn-num" onclick="append('4')">4</button>
+        <button class="btn btn-num" onclick="append('5')">5</button>
+        <button class="btn btn-num" onclick="append('6')">6</button>
+        <button class="btn btn-op" onclick="append('×')">×</button>
+        <button class="btn btn-num" onclick="append('1')">1</button>
+        <button class="btn btn-num" onclick="append('2')">2</button>
+        <button class="btn btn-num" onclick="append('3')">3</button>
+        <button class="btn btn-op" onclick="append('-')">−</button>
+        <button class="btn btn-num" onclick="append('0')">0</button>
+        <button class="btn btn-num" onclick="append('.')">.</button>
+        <button class="btn btn-op" onclick="backspace()">⌫</button>
+        <button class="btn btn-op" onclick="append('+')">+</button>
+        <button class="btn btn-eq" onclick="calculate()">=</button>
+        <button class="btn btn-sq" onclick="append('**2')">x²</button>
+        <button class="btn btn-sq" onclick="append('**')">xⁿ</button>
+      </div>
+    </div>
+
+    <!-- GRAPH TAB -->
+    <div id="panel-graph" class="panel">
+      <div id="graph-input-row">
+        <input id="fn-input" value="sin(x)" placeholder="e.g. sin(x), x**2-4">
+        <button id="plot-btn" onclick="plotGraph()">Plot</button>
+      </div>
+      <div id="canvas-wrap"><canvas id="gcanvas"></canvas></div>
+      <div id="eq-solver">
+        <div id="eq-title">Linear equation solver — e.g. 2x + 5 = 15</div>
+        <div id="eq-row">
+          <input id="eq-input" placeholder="2x + 5 = 15">
+          <button id="eq-solve-btn" onclick="solveEq()">Solve</button>
+        </div>
+        <div id="eq-result"></div>
+      </div>
+    </div>
+
+    <!-- FINANCE TAB -->
+    <div id="panel-finance" class="panel">
+      <div class="fin-tabs">
+        <div class="fin-tab active" id="ft-loan" onclick="setFinTab('loan')">Loan</div>
+        <div class="fin-tab" id="ft-invest" onclick="setFinTab('invest')">Investment</div>
+        <div class="fin-tab" id="ft-rate" onclick="setFinTab('rate')">Rate Finder</div>
+      </div>
+      <div id="fin-loan" class="fin-panel active">
+        <div class="fin-field"><div class="fin-label">Principal ($)</div><input class="fin-input" id="l-principal" value="10000"></div>
+        <div class="fin-field"><div class="fin-label">Annual Rate (%)</div><input class="fin-input" id="l-rate" value="5"></div>
+        <div class="fin-field"><div class="fin-label">Term (months)</div><input class="fin-input" id="l-months" value="60"></div>
+        <button class="fin-calc-btn" onclick="calcLoan()">Calculate Payment</button>
+        <div class="fin-result" id="loan-result">
+          <div class="fin-result-row"><span>Monthly Payment</span><span id="l-monthly"></span></div>
+          <div class="fin-result-row"><span>Total Payment</span><span id="l-total"></span></div>
+          <div class="fin-result-row"><span>Total Interest</span><span id="l-interest"></span></div>
+        </div>
+      </div>
+      <div id="fin-invest" class="fin-panel">
+        <div class="fin-field"><div class="fin-label">Initial ($)</div><input class="fin-input" id="i-principal" value="5000"></div>
+        <div class="fin-field"><div class="fin-label">Annual Rate (%)</div><input class="fin-input" id="i-rate" value="7"></div>
+        <div class="fin-field"><div class="fin-label">Years</div><input class="fin-input" id="i-years" value="10"></div>
+        <div class="fin-field"><div class="fin-label">Monthly Contribution ($)</div><input class="fin-input" id="i-monthly" value="100"></div>
+        <button class="fin-calc-btn" onclick="calcInvest()">Calculate Growth</button>
+        <div class="fin-result" id="invest-result">
+          <div class="fin-result-row"><span>Final Value</span><span id="i-final"></span></div>
+          <div class="fin-result-row"><span>Total Invested</span><span id="i-invested"></span></div>
+          <div class="fin-result-row"><span>Total Gain</span><span id="i-gain"></span></div>
+        </div>
+      </div>
+      <div id="fin-rate" class="fin-panel">
+        <div class="fin-field"><div class="fin-label">Principal ($)</div><input class="fin-input" id="r-principal" value="1000"></div>
+        <div class="fin-field"><div class="fin-label">Final Amount ($)</div><input class="fin-input" id="r-final" value="1500"></div>
+        <div class="fin-field"><div class="fin-label">Years</div><input class="fin-input" id="r-years" value="5"></div>
+        <button class="fin-calc-btn" onclick="calcRate()">Find Rate</button>
+        <div class="fin-result" id="rate-result">
+          <div class="fin-result-row"><span>Annual Rate</span><span id="r-rate"></span></div>
+          <div class="fin-result-row"><span>Monthly Rate</span><span id="r-monthly-rate"></span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTES TAB -->
+    <div id="panel-notes" class="panel">
+      <input id="notes-name" value="My Calculations" placeholder="Note name...">
+      <textarea id="notes-area" placeholder="Write notes or math expressions here...&#10;e.g. 2+2, sqrt(16), 100*0.15"></textarea>
+      <div id="notes-eval-result"></div>
+      <div class="notes-actions">
+        <button class="notes-btn" onclick="evalNotes()">⚡ Calc</button>
+        <button class="notes-btn" onclick="copyNotes()">📋 Copy</button>
+        <button class="notes-btn" onclick="renameNote()">✏️ Rename</button>
+        <button class="notes-btn" onclick="clearNotes()">🗑 Clear</button>
+        <button class="notes-btn" onclick="skipLine()">↵ Skip</button>
+      </div>
+    </div>
+
+    <!-- AI TAB -->
+    <div id="panel-ai" class="panel">
+      <div class="ai-suggestions">
+        <div class="ai-sug" onclick="aiQuick('solve 3x² - 5 = 22')">solve 3x² − 5 = 22</div>
+        <div class="ai-sug" onclick="aiQuick('explain compound interest')">compound interest</div>
+        <div class="ai-sug" onclick="aiQuick('15% tip on $47.50')">15% tip on $47.50</div>
+        <div class="ai-sug" onclick="aiQuick('what is the derivative of sin(x)')">d/dx sin(x)</div>
+      </div>
+      <div id="ai-messages">
+        <div class="ai-msg assistant">Hi! I'm your AI math assistant. Ask me to solve equations, explain concepts, calculate tips, or anything math-related!</div>
+      </div>
+      <div id="ai-input-row">
+        <input id="ai-input" placeholder="Ask anything math..." onkeydown="if(event.key==='Enter')sendAI()">
+        <button id="ai-send" onclick="sendAI()"><i class="ti ti-send" aria-hidden="true"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var expr='',calcHistory=[];
+
+function updateClock(){
+  var now=new Date();
+  var h=now.getHours().toString().padStart(2,'0');
+  var m=now.getMinutes().toString().padStart(2,'0');
+  document.getElementById('clock').textContent=h+':'+m;
+  var days=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  var months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  document.getElementById('date').textContent=days[now.getDay()]+', '+months[now.getMonth()]+' '+now.getDate();
+}
+updateClock();setInterval(updateClock,1000);
+
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach(function(el,i){el.classList.remove('active');});
+  document.querySelectorAll('.panel').forEach(function(el){el.classList.remove('active');});
+  var tabs=['calc','graph','finance','notes','ai'];
+  document.querySelectorAll('.tab')[tabs.indexOf(t)].classList.add('active');
+  document.getElementById('panel-'+t).classList.add('active');
+  if(t==='graph')setTimeout(plotGraph,100);
+}
+
+function append(v){
+  expr+=v;updateDisplay();
+}
+function appendChip(v){expr+=v;updateDisplay();}
+function clearAll(){expr='';document.getElementById('result-disp').textContent='0';document.getElementById('expr').textContent='';} 
+function backspace(){expr=expr.slice(0,-1);updateDisplay();}
+
+function updateDisplay(){
+  document.getElementById('expr').textContent=expr;
+  try{
+    var safe=expr.replace(/÷/g,'/').replace(/×/g,'*').replace(/sqrt\(/g,'Math.sqrt(').replace(/sin\(/g,'Math.sin(').replace(/cos\(/g,'Math.cos(').replace(/tan\(/g,'Math.tan(').replace(/log\(/g,'Math.log10(').replace(/ln\(/g,'Math.log(').replace(/π/g,'Math.PI').replace(/e/g,'Math.E');
+    var r=Function('"use strict";return ('+safe+')')();
+    if(isFinite(r))document.getElementById('result-disp').textContent=parseFloat(r.toFixed(10)).toString();
+  }catch(e){}
+}
+
+function calculate(){
+  try{
+    var safe=expr.replace(/÷/g,'/').replace(/×/g,'*').replace(/sqrt\(/g,'Math.sqrt(').replace(/sin\(/g,'Math.sin(').replace(/cos\(/g,'Math.cos(').replace(/tan\(/g,'Math.tan(').replace(/log\(/g,'Math.log10(').replace(/ln\(/g,'Math.log(').replace(/π/g,'Math.PI').replace(/e/g,'Math.E');
+    var r=Function('"use strict";return ('+safe+')')();
+    var res=parseFloat(r.toFixed(10)).toString();
+    calcHistory.unshift(expr+' = '+res);
+    if(calcHistory.length>20)calcHistory.pop();
+    document.getElementById('result-disp').textContent=res;
+    document.getElementById('expr').textContent=expr+' =';
+    expr=res;
+  }catch(e){document.getElementById('result-disp').textContent='Error';}
+}
+
+var calcMode='std';
+function setMode(m){
+  calcMode=m;
+  document.querySelectorAll('.mode-tab').forEach(function(el){el.classList.remove('active');});
+  document.getElementById('mt-'+m).classList.add('active');
+  renderSciExtra();
+}
+
+function renderSciExtra(){
+  var el=document.getElementById('sci-extra');
+  if(calcMode==='std'){el.innerHTML='';return;}
+  if(calcMode==='sci'){
+    el.innerHTML='<div class="sci-row"><div class="sci-btn" onclick="append(\'sin(\')">sin<span>asin</span></div><div class="sci-btn" onclick="append(\'cos(\')">cos<span>acos</span></div><div class="sci-btn" onclick="append(\'tan(\')">tan<span>atan</span></div><div class="sci-btn" onclick="append(\'Math.PI\')">π</div><div class="sci-btn" onclick="append(\'log(\')">log<span>base 10</span></div><div class="sci-btn" onclick="append(\'ln(\')">ln<span>nat</span></div><div class="sci-btn" onclick="append(\'Math.sqrt(\')">√</div><div class="sci-btn" onclick="append(\'Math.E\')">e</div></div>';
+  }else if(calcMode==='trig'){
+    el.innerHTML='<div class="sci-row"><div class="sci-btn" onclick="append(\'Math.sin(\')">sin</div><div class="sci-btn" onclick="append(\'Math.cos(\')">cos</div><div class="sci-btn" onclick="append(\'Math.tan(\')">tan</div><div class="sci-btn" onclick="append(\'Math.PI\')">π</div><div class="sci-btn" onclick="append(\'Math.asin(\')">asin</div><div class="sci-btn" onclick="append(\'Math.acos(\')">acos</div><div class="sci-btn" onclick="append(\'Math.atan(\')">atan</div><div class="sci-btn" onclick="append(\'(Math.PI/180)*\')">deg</div></div>';
+  }else if(calcMode==='const'){
+    el.innerHTML='<div class="sci-row"><div class="sci-btn" onclick="append(\'Math.PI\')">π<span>3.14159</span></div><div class="sci-btn" onclick="append(\'Math.E\')">e<span>2.71828</span></div><div class="sci-btn" onclick="append(\'1.61803\')">φ<span>golden</span></div><div class="sci-btn" onclick="append(\'299792458\')">c<span>m/s</span></div><div class="sci-btn" onclick="append(\'6.674e-11\')">G<span>gravity</span></div><div class="sci-btn" onclick="append(\'6.626e-34\')">h<span>Planck</span></div><div class="sci-btn" onclick="append(\'9.81\')">g<span>9.81 m/s²</span></div><div class="sci-btn" onclick="append(\'1.602e-19\')">e⁻<span>electron</span></div></div>';
+  }else if(calcMode==='hist'){
+    var h=calcHistory.length?calcHistory.map(function(x){return'<div style="padding:4px 0;border-bottom:1px solid var(--border);font-size:12px;cursor:pointer;color:var(--text2)" onclick="loadHistory(\''+x.split(' = ')[1]+'\')">'+x+'</div>';}).join(''):'<div style="color:var(--text3);font-size:12px;padding:4px 0">No history yet</div>';
+    el.innerHTML='<div style="background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:8px;max-height:120px;overflow-y:auto;margin-bottom:8px">'+h+'</div>';
+  }
+}
+
+function loadHistory(v){expr=v;updateDisplay();}
+
+/* GRAPH */
+function plotGraph(){
+  var canvas=document.getElementById('gcanvas');
+  if(!canvas)return;
+  canvas.width=canvas.offsetWidth||380;
+  canvas.height=220;
+  var ctx=canvas.getContext('2d');
+  var fn=document.getElementById('fn-input').value;
+  var W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle='#161b22';
+  ctx.fillRect(0,0,W,H);
+  var cx=W/2,cy=H/2,scale=40;
+  ctx.strokeStyle='#30363d';ctx.lineWidth=0.5;
+  for(var gx=-10;gx<=10;gx++){var px=cx+gx*scale;ctx.beginPath();ctx.moveTo(px,0);ctx.lineTo(px,H);ctx.stroke();}
+  for(var gy=-3;gy<=3;gy++){var py=cy+gy*scale;ctx.beginPath();ctx.moveTo(0,py);ctx.lineTo(W,py);ctx.stroke();}
+  ctx.strokeStyle='#4fc3f7';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(cx,0);ctx.lineTo(cx,H);ctx.stroke();
+  ctx.beginPath();ctx.moveTo(0,cy);ctx.lineTo(W,cy);ctx.stroke();
+  try{
+    var safeFn=fn.replace(/sin/g,'Math.sin').replace(/cos/g,'Math.cos').replace(/tan/g,'Math.tan').replace(/sqrt/g,'Math.sqrt').replace(/log/g,'Math.log10').replace(/ln/g,'Math.log').replace(/pi/g,'Math.PI').replace(/abs/g,'Math.abs').replace(/\^/g,'**');
+    var evalFn=new Function('x','"use strict";return '+safeFn);
+    ctx.strokeStyle='#bb86fc';ctx.lineWidth=2;ctx.beginPath();
+    var first=true;
+    for(var px2=0;px2<W;px2++){
+      var xv=(px2-cx)/scale;
+      var yv=evalFn(xv);
+      if(isFinite(yv)){
+        var py2=cy-yv*scale;
+        if(first){ctx.moveTo(px2,py2);first=false;}
+        else ctx.lineTo(px2,py2);
+      }else{first=true;}
+    }
+    ctx.stroke();
+    ctx.fillStyle='#8b949e';ctx.font='11px sans-serif';
+    ctx.fillText('f(x) = '+fn,8,18);
+  }catch(e){
+    ctx.fillStyle='#ff6b6b';ctx.font='13px sans-serif';
+    ctx.fillText('Invalid function',W/2-60,H/2);
+  }
+}
+
+function solveEq(){
+  var eq=document.getElementById('eq-input').value.trim();
+  var res=document.getElementById('eq-result');
+  try{
+    var parts=eq.split('=');
+    if(parts.length!==2){res.textContent='Format: ax + b = c';return;}
+    var lhs=parts[0].trim(),rhs=parseFloat(parts[1].trim());
+    var m=lhs.match(/([+-]?[\d.]*)x/);
+    var b=lhs.replace(/([+-]?[\d.]*)x/,'').trim();
+    var a=m?(m[1]===''||m[1]==='+'?1:m[1]==='-'?-1:parseFloat(m[1])):0;
+    var bv=b?parseFloat(b):0;
+    var x=(rhs-bv)/a;
+    res.textContent='x = '+parseFloat(x.toFixed(6));
+    res.style.color='#56d364';
+  }catch(e){res.textContent='Could not solve';res.style.color='#ff6b6b';}
+}
+
+/* FINANCE */
+function setFinTab(t){
+  document.querySelectorAll('.fin-tab').forEach(function(el){el.classList.remove('active');});
+  document.querySelectorAll('.fin-panel').forEach(function(el){el.classList.remove('active');});
+  document.getElementById('ft-'+t).classList.add('active');
+  document.getElementById('fin-'+t).classList.add('active');
+}
+
+function calcLoan(){
+  var P=parseFloat(document.getElementById('l-principal').value);
+  var r=parseFloat(document.getElementById('l-rate').value)/100/12;
+  var n=parseFloat(document.getElementById('l-months').value);
+  var m=r?P*r*Math.pow(1+r,n)/(Math.pow(1+r,n)-1):P/n;
+  var total=m*n;
+  document.getElementById('l-monthly').textContent='$'+m.toFixed(2);
+  document.getElementById('l-total').textContent='$'+total.toFixed(2);
+  document.getElementById('l-interest').textContent='$'+(total-P).toFixed(2);
+  document.getElementById('loan-result').style.display='block';
+}
+
+function calcInvest(){
+  var P=parseFloat(document.getElementById('i-principal').value);
+  var r=parseFloat(document.getElementById('i-rate').value)/100/12;
+  var n=parseFloat(document.getElementById('i-years').value)*12;
+  var mc=parseFloat(document.getElementById('i-monthly').value);
+  var fv=P*Math.pow(1+r,n)+mc*(Math.pow(1+r,n)-1)/r;
+  var invested=P+mc*n;
+  document.getElementById('i-final').textContent='$'+fv.toFixed(2);
+  document.getElementById('i-invested').textContent='$'+invested.toFixed(2);
+  document.getElementById('i-gain').textContent='$'+(fv-invested).toFixed(2);
+  document.getElementById('invest-result').style.display='block';
+}
+
+function calcRate(){
+  var P=parseFloat(document.getElementById('r-principal').value);
+  var F=parseFloat(document.getElementById('r-final').value);
+  var y=parseFloat(document.getElementById('r-years').value);
+  var rate=(Math.pow(F/P,1/y)-1)*100;
+  document.getElementById('r-rate').textContent=rate.toFixed(4)+'%';
+  document.getElementById('r-monthly-rate').textContent=(rate/12).toFixed(4)+'%';
+  document.getElementById('rate-result').style.display='block';
+}
+
+/* NOTES */
+function evalNotes(){
+  var lines=document.getElementById('notes-area').value.split('\n');
+  var results=[];
+  lines.forEach(function(line){
+    var l=line.trim();
+    if(!l){results.push('');return;}
+    try{
+      var safe=l.replace(/sqrt\(/g,'Math.sqrt(').replace(/sin\(/g,'Math.sin(').replace(/cos\(/g,'Math.cos(').replace(/tan\(/g,'Math.tan(').replace(/log\(/g,'Math.log10(').replace(/ln\(/g,'Math.log(').replace(/pi/g,'Math.PI').replace(/e/g,'Math.E');
+      var r=Function('"use strict";return ('+safe+')')();
+      if(isFinite(r))results.push(l+' = '+parseFloat(r.toFixed(10)));
+      else results.push(l);
+    }catch(e){results.push(l);}
+  });
+  var el=document.getElementById('notes-eval-result');
+  el.textContent=results.join('\n');
+  el.style.display='block';
+}
+
+function copyNotes(){
+  var t=document.getElementById('notes-area').value;
+  navigator.clipboard.writeText(t).catch(function(){});
+  var btn=event.target;btn.textContent='✅ Copied!';setTimeout(function(){btn.textContent='📋 Copy';},1500);
+}
+
+function renameNote(){
+  var name=prompt('Note name:',document.getElementById('notes-name').value);
+  if(name)document.getElementById('notes-name').value=name;
+}
+
+function clearNotes(){
+  if(confirm('Clear all notes?')){document.getElementById('notes-area').value='';document.getElementById('notes-eval-result').style.display='none';}
+}
+
+function skipLine(){
+  var ta=document.getElementById('notes-area');
+  ta.value+='\n';
+  ta.scrollTop=ta.scrollHeight;
+  ta.focus();
+}
+
+/* AI */
+var aiHistory=[];
+
+function addAiMsg(role,text){
+  var div=document.getElementById('ai-messages');
+  var m=document.createElement('div');
+  m.className='ai-msg '+role;
+  m.textContent=text;
+  div.appendChild(m);
+  div.scrollTop=div.scrollHeight;
+  return m;
+}
+
+async function sendAI(){
+  var input=document.getElementById('ai-input');
+  var q=input.value.trim();
+  if(!q)return;
+  input.value='';
+  addAiMsg('user',q);
+  aiHistory.push({role:'user',content:q});
+  var typing=addAiMsg('assistant typing','Thinking...');
+  try{
+    var resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:1000,
+        system:'You are a math and calculator assistant. Be concise and helpful. Show your work briefly. For equations, show step-by-step solutions. For calculations, give the answer and a brief explanation.',
+        messages:aiHistory
+      })
+    });
+    var data=await resp.json();
+    var answer=data.content&&data.content[0]?data.content[0].text:'Sorry, I could not get a response.';
+    typing.className='ai-msg assistant';
+    typing.textContent=answer;
+    aiHistory.push({role:'assistant',content:answer});
+    if(aiHistory.length>20)aiHistory=aiHistory.slice(-20);
+  }catch(e){
+    typing.className='ai-msg assistant';
+    typing.textContent='Error: Could not connect to AI. Check your API key.';
+  }
+  document.getElementById('ai-messages').scrollTop=document.getElementById('ai-messages').scrollHeight;
+}
+
+function aiQuick(q){
+  document.getElementById('ai-input').value=q;
+  sendAI();
+}
+</script>
