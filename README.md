@@ -74,13 +74,7 @@ The app already calls the Anthropic API — just make sure your deployment envir
 | AI | [Anthropic Claude API](https://docs.anthropic.com/) (`claude-sonnet-4-6`) |
 | Graphing | HTML5 Canvas API |
 
-## 📁 Project Structure
 
-ai-calculator-pro/
-├── index.html        # Main app (single file — HTML + CSS + JS)
-├── assets/
-│   └── screenshot.png  # App screenshot (add this yourself)
-└── README.md         # This file
 ## 📐 Supported Math Functions
 
 | Function | Input Example | Description |
